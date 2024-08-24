@@ -44,7 +44,7 @@ class UserController extends AbstractController
     }
     
     #[Route('/api/user/{id}', name: 'modifid_user',methods:['PUT'])]
-    public function updateUser(int $id, Request  $request): JsonResponse
+    public function updateUser(int $id, Request  $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
         $datos=$this->em->getRepository(User::class)->find($id);
         if(!$datos){
@@ -67,16 +67,47 @@ class UserController extends AbstractController
                     "mensaje"=>"El campo apellido es obligatorio"
                 ],Response::HTTP_OK);
             }
+            if(!isset($data['email'])){
+                return $this->json([
+                    "status"=>"Error",
+                    "mensaje"=>"El campo email es obligatorio"
+                ],Response::HTTP_OK);
+            }
+            if(!isset($data['password'])){
+                return $this->json([
+                    "status"=>"Error",
+                    "mensaje"=>"El campo password es obligatorio"
+                ],Response::HTTP_OK);
+            }
+            if(!isset($data['confirmpassword'])){
+                return $this->json([
+                    "status"=>"Error",
+                    "mensaje"=>"El campo confirmpassword es obligatorio"
+                ],Response::HTTP_OK);
+            }
             if(!isset($data['phone'])){
                 return $this->json([
                     "status"=>"Error",
                     "mensaje"=>"El campo telefono es obligatorio"
                 ],Response::HTTP_OK);
             }
+            if($data['password']!=$data['confirmpassword']){
+                return $this->json([
+                    "status"=>"Error",
+                    "mensaje"=>"La contraseña no es valida"
+                ],Response::HTTP_OK);
+            }
+           
             
             $datos->setName($data['name']);
             $datos->setLastName($data['lastname']);
+            $datos->setPassword($passwordHasher->hashPassword(
+                $datos,
+                $data['password']
+            ));
+            $datos->setEmail($data['email']);
             $datos->setPhone($data['phone']);
+
             $this->em->flush();
 
             return $this->json([
