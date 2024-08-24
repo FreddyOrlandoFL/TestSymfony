@@ -1,0 +1,20 @@
+# config/packages/security.yaml
+security:
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email # or another property that uniquely identifies users, e.g., 'username'
+   
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+                
+    firewalls:
+       main:
+            custom_authenticators:
+                - App\Security\CustomAuthenticator
+    access_control:
+        - { path: ^/api/user,roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/content,roles: IS_AUTHENTICATED_FULLY }
+        
+       
